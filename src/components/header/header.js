@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components"
 import { useWindowDimensions } from "hooks";
 
@@ -9,64 +10,77 @@ const HeaderComponent = (props) => {
     const [burger, setBurger] = useState(false)
     const { height, width } = useWindowDimensions()
 
+    const directions = [
+        {
+            "title": "Home",
+            "icon": "",
+            "url": "/home/"
+        },
+        {
+            "title": "Menu",
+            "icon": "",
+            "url": "/menu/"
+        },
+        {
+            "title": "Your order(s)",
+            "icon": "",
+            "url": "/order/"
+        }
+    ]
 
     // create later
-    const logoSection = () => {
-        return (
-            <LogoSection>
 
-            </LogoSection>
-        )
+
+    const navigatorContent = () => {
+        console.log(props.burger)
+
+
+
     }
 
-    const navigatorSection = () => {
-        console.log(width)
+    const listItemsInMenu = directions.map((item) => (
+        <DirectWrapper >
+            <Link to={item.url}>{item.title}</Link>
+        </DirectWrapper>
+    ))
 
-        return (
-            <NavigatorSection burger={burger} windowWidth={width}>
-                <NavigatorComponent burger={burger} windowWidth={width} />
-            </NavigatorSection>
-        )
-    }
-
-    const mobileNavSection = () => {
-        return (
-            <MobileNavSection burger={burger} windowWidth={width}>
+    return (
+        <HeaderWrapper burger={burger} windowWidth={width}>
+            <LogoSection></LogoSection>
+            <DesktopNavSection>
+                {listItemsInMenu}
+            </DesktopNavSection>
+            {width < 768 && <MobileNavSection>
                 <div
                     className="burger-icon-wapper"
                     onClick={() => {
                         setBurger(!burger)
-
-                        console.log(burger)
                     }}>
                 </div>
-            </MobileNavSection>
-        )
-    }
-
-    return (
-        <HeaderWrapper>
-            {logoSection()}
-            {navigatorSection()}
-            {mobileNavSection()}
+            </MobileNavSection>}
         </HeaderWrapper>
     )
 }
+
+export { HeaderComponent }
 
 const HeaderWrapper = styled.div`
     display: grid;
     height: auto;
     width: 100%;
     grid-template-columns: 25% 75%;
-    grid-template-rows: 1fr;
+    grid-template-rows: auto;
     grid-template-areas: 
         "logo desktop_nav";
+    grid-auto-flow: row;
+    background-color: blanchedalmond;
 
     @media only screen and (max-width: 768px) {
-        grid-template-rows: 1fr auto;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
         grid-template-areas: 
-        "logo mobile_nav"
-        "desktop_nav desktop_nav";
+            "logo mobile_nav"
+            "desktop_nav desktop_nav";
+
     }
 `;
 
@@ -77,27 +91,34 @@ const LogoSection = styled.div`
     background-color: orange;
 `;
 
-const NavigatorSection = styled.div`
+const DesktopNavSection = styled.div`
     grid-area: desktop_nav;
     display: flex;
     height: 100px;
     width: 100%;
     background-color: blue;
-
+    
     @media only screen and (max-width: 768px) {
-        justify-content: flex-end;
-        height: ${props => (props.burger && props.windowWidth <= 768) ? "auto" : "0px"};
+        justify-content: left;
+        height: auto;
+        flex-direction: column;
+        /* justify-content: center; */
+        align-items: center;
+        /* position: absolute; */
+        /* height: ${props => (props.burger && props.windowWidth <= 768) ? "auto" : "0px"}; */
     }
 `;
 
 const MobileNavSection = styled.div`
     grid-area: mobile_nav;
-    height: ${props => (props.windowWidth > 768) ? "0px" : "100px"};
+    height: 100px;
+    /* height: ${props => (props.windowWidth > 768) ? "0px" : "100px"}; */
     width: 100%;
     background-color: red;
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    border: 5px solid black;
 
     .burger-icon-wapper {
         height: 50px;
@@ -108,5 +129,25 @@ const MobileNavSection = styled.div`
     }
 `;
 
+// const NavigatorWrapper = styled.div`
+//     display: flex;
+//     flex-direction: row;
+//     border: 2px solid black;
+//     /* display: none; */
+//     /* visibility: hidden;
+//     max-height: 0; */
+//     width: 100%;
 
-export { HeaderComponent }
+//     @media only screen and (max-width: 768px) {
+//         flex-direction: column;
+//         width: ${props => (props.burger && props.windowWidth <= 768) ? "300px" : "0"};
+//         height: ${props => (props.burger && props.windowWidth <= 768) ? "auto" : "0"};
+//         visibility: ${props => (props.burger && props.windowWidth <= 768) ? "visible" : "hidden"};
+//     }
+// `;
+
+const DirectWrapper = styled.div`
+    width: 100px;
+`
+
+

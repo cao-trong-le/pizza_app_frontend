@@ -30,8 +30,6 @@ const NavigatorComponent = (props) => {
     const navigatorContent = () => {
         console.log(props.burger)
 
-
-
         return directions.map((item) => {
             return (
                 <DirectWrapper >
