@@ -1,17 +1,47 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, createRef } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 const CustomizeComponent = (props) => {
     // create later
 
-    const [number, setNumber] = useState(0)
+    const [number, setNumber] = useState("")
     const [option, setOption] = useState(0)
     const [optionType, setOptionType] = useState(0)
 
+    const numberInputRef = createRef()
+
+    useEffect(() => {
+        console.log(`it's changed, ${number}`)
+
+        if (number > 100) {
+            setNumber(() => { return 100 })
+
+        } else if (number < 1) {
+            setNumber(() => { return 1 })
+        }
+    }, [number]);
+
+    let optionTypeInput = createRef()
+
     const change_order_number = () => {
 
+    }
+
+    const iterableContent = () => {
+        return (
+            <></>
+        )
+    }
+
+    const intructionContent = () => {
+        return (
+            <input
+                type="text"
+                placeholder="Any furthur instructions for us? ...."
+            />
+        )
     }
 
     const sizes_list = [
@@ -37,18 +67,22 @@ const CustomizeComponent = (props) => {
     const customize_options = [
         {
             "option": "Dough/Sauce/Cheese",
+            "content": null,
             "sections": ["Dough", "Sauce", "Cheese"]
         },
         {
             "option": "Toppings",
+            "content": null,
             "sections": ["Meat", "Veggie", "Cheese"]
         },
         {
             "option": "Extras",
+            "content": null,
             "sections": []
         },
         {
             "option": "Instructions",
+            "content": intructionContent,
             "sections": []
         }
     ]
@@ -57,8 +91,20 @@ const CustomizeComponent = (props) => {
         if (sections.length > 0) {
             return (
                 <div>
-                    {sections.map(section => (
-                        <input className="section-btn" type="button" value={section} />
+                    {sections.map((section, index) => (
+                        <input
+                            ref={optionTypeInput}
+                            className="section-btn"
+                            id={index}
+                            type="button"
+                            key={section}
+                            data-index={index}
+                            onClick={(e) => {
+                                // console.log(optionTypeInput.current.getAttribute("data-index"))
+                                console.log(e.target.getAttribute("data-index"))
+                                setOptionType(e.target.getAttribute("data-index"))
+                            }}
+                            value={section} />
                     ))}
                 </div>
             )
@@ -78,9 +124,25 @@ const CustomizeComponent = (props) => {
                         type="button"
                         value="-" />
                     <input
+                        ref={numberInputRef}
                         className="number-display"
-                        type="number"
-                        value={0} />
+                        type="text"
+                        placeholder="0"
+                        value={number.toString()}
+                        onChange={(e) => {
+                            if (parseInt(e.target.value) > 100) {
+                                setNumber(100)
+                            } else if (parseInt(e.target.value) < 1) {
+                                setNumber(1)
+                            } else if (e.target.value === "") {
+                                setNumber("")
+                            } else {
+                                setNumber(parseInt(e.target.value))
+                            }
+
+
+                            console.log(e.target.value)
+                        }} />
                     <input
                         className="increase-btn"
                         type="button"
@@ -103,10 +165,16 @@ const CustomizeComponent = (props) => {
             </UpperSection>
             <LowerSection>
                 <CustomizeOption>
-                    {customize_options.map(option => (
+                    {customize_options.map((option, index) => (
                         <input
                             type="button"
                             className="customize-option"
+                            key={index}
+                            data-index={index}
+                            onClick={(e) => {
+                                setOption(e.target.getAttribute("data-index"))
+                                setOptionType(0)
+                            }}
                             value={option.option} />
                     ))}
                 </CustomizeOption>
@@ -114,7 +182,12 @@ const CustomizeComponent = (props) => {
                     {dough_option_section(customize_options[option].sections)}
                 </OptionTypeDisplay>
                 <CustomizeDisplay>
-
+                    <h1>{customize_options[option].sections[optionType]}</h1>
+                    {(() => {
+                        if (customize_options[option].content !== null) {
+                            return (customize_options[option].content)()
+                        }
+                    })()}
                 </CustomizeDisplay>
             </LowerSection>
         </CustomizeComponentWrapper>
@@ -123,9 +196,14 @@ const CustomizeComponent = (props) => {
 
 export { CustomizeComponent }
 
-const OptionTypeDisplay = styled.div``;
+const OptionTypeDisplay = styled.div`
+    
+`;
 
-const CustomizeDisplay = styled.div``;
+const CustomizeDisplay = styled.div`
+    height: 200px;
+    background-color: blueviolet;
+`;
 
 const CustomizeComponentWrapper = styled.div`
     width: 100%;
