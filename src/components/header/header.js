@@ -5,6 +5,7 @@ import styled from "styled-components"
 import { useWindowDimensions } from "hooks";
 
 import { NavigatorComponent } from "./navigator";
+import { F } from "caniuse-lite/data/agents";
 
 const HeaderComponent = (props) => {
     const [burger, setBurger] = useState(false)
@@ -30,14 +31,6 @@ const HeaderComponent = (props) => {
 
     // create later
 
-
-    const navigatorContent = () => {
-        console.log(props.burger)
-
-
-
-    }
-
     const listItemsInMenu = directions.map((item) => (
         <DirectWrapper >
             <Link to={item.url}>{item.title}</Link>
@@ -46,11 +39,31 @@ const HeaderComponent = (props) => {
 
     return (
         <HeaderWrapper burger={burger} windowWidth={width}>
+            {console.log(burger)}
             <LogoSection></LogoSection>
-            <DesktopNavSection>
+            {(width > 768) && <DesktopNavSection>
                 {listItemsInMenu}
-            </DesktopNavSection>
-            {width < 768 && <MobileNavSection>
+            </DesktopNavSection>}
+
+            {(() => {
+                if (width > 768) {
+                    return (
+                        <DesktopNavSection>
+                            {listItemsInMenu}
+                        </DesktopNavSection>
+                    )
+                } else if (width < 768 && burger) {
+                    return (
+                        <DesktopNavSection>
+                            {listItemsInMenu}
+                        </DesktopNavSection>
+                    )
+                } else if (width < 768 && !burger) {
+                    return <React.Fragment></React.Fragment>
+                }
+            })()}
+
+            {(width < 768) && <MobileNavSection>
                 <div
                     className="burger-icon-wapper"
                     onClick={() => {
@@ -76,7 +89,7 @@ const HeaderWrapper = styled.div`
     background-color: blanchedalmond;
 
     @media only screen and (max-width: 768px) {
-        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) minmax(0, auto);
         grid-template-areas: 
             "logo mobile_nav"
             "desktop_nav desktop_nav";
@@ -118,7 +131,7 @@ const MobileNavSection = styled.div`
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    border: 5px solid black;
+    /* border: 5px solid black; */
 
     .burger-icon-wapper {
         height: 50px;

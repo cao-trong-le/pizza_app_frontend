@@ -11,6 +11,7 @@ import { ProductsComponent } from "components";
 import {
   HomePage,
   HeaderComponent,
+  CustomizeComponent,
   ProductGroupComponent
 } from "components";
 import HardSet from "redux-persist/lib/stateReconciler/hardSet";
@@ -34,7 +35,7 @@ const App = (props) => {
           <Route exact path="/home/" component={HomePage} />
           <Route exact path="/menu/" component={ProductGroupComponent} />
           <Route exact path="/menu/:productGroup/:productType/" component={ProductsComponent} />
-          <Route exact path="/menu/:productGroup/:productType/:productName/" component={ProductsComponent} />
+          <Route exact path="/menu/:productGroup/:productType/:productName/" component={CustomizeComponent} />
         </Switch>
       </AnimatePresence>
     )
