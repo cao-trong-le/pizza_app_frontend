@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef, createRef } from "react";
+import React, { useState, useEffect, useRef, createRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+
 
 const CustomizeComponent = (props) => {
     // create later
@@ -10,18 +11,28 @@ const CustomizeComponent = (props) => {
     const [option, setOption] = useState(0)
     const [optionType, setOptionType] = useState(0)
 
-    const numberInputRef = createRef()
 
     useEffect(() => {
         console.log(`it's changed, ${number}`)
+        console.log(`is it a number? ${isNaN(number)}`)
 
-        if (number > 100) {
-            setNumber(() => { return 100 })
+        if (!isNaN(number)) {
+            if (parseInt(number) > 100) {
+                setNumber(() => { return 100 })
+            }
 
-        } else if (number < 1) {
-            setNumber(() => { return 1 })
+            // eslint-disable-next-line
+            if (parseInt(number) == 0) {
+                console.log("it is 0")
+                setNumber(() => { return 1 })
+            }
+        } else {
+            setNumber("1")
         }
     }, [number]);
+
+
+    const numberInputRef = useRef()
 
     let optionTypeInput = createRef()
 
@@ -122,30 +133,45 @@ const CustomizeComponent = (props) => {
                     <input
                         className="reduce-btn"
                         type="button"
+                        onClick={(e) => {
+                            console.log()
+
+                            let inputValue = numberInputRef.current.getAttribute("value")
+
+                            if (parseInt(inputValue) > 1) {
+                                setNumber((parseInt(inputValue) - 1).toString())
+                            } else if (parseInt(inputValue) <= 0 || inputValue === "") {
+                                setNumber("1")
+                            }
+
+                        }}
                         value="-" />
                     <input
                         ref={numberInputRef}
                         className="number-display"
                         type="text"
                         placeholder="0"
-                        value={number.toString()}
+                        value={number}
                         onChange={(e) => {
-                            if (parseInt(e.target.value) > 100) {
-                                setNumber(100)
-                            } else if (parseInt(e.target.value) < 1) {
-                                setNumber(1)
-                            } else if (e.target.value === "") {
-                                setNumber("")
-                            } else {
-                                setNumber(parseInt(e.target.value))
-                            }
-
-
                             console.log(e.target.value)
+                            setNumber(e.target.value)
+                            // console.log(e.target.value)
                         }} />
                     <input
                         className="increase-btn"
                         type="button"
+                        onClick={(e) => {
+                            console.log()
+
+                            let inputValue = numberInputRef.current.getAttribute("value")
+
+                            if (parseInt(inputValue) >= 1 && parseInt(inputValue) < 100) {
+                                setNumber((parseInt(inputValue) + 1).toString())
+                            } else if (inputValue === "") {
+                                setNumber("1")
+                            }
+
+                        }}
                         value="+" />
                 </div>
                 <div className="size-picker-wrapper">
@@ -196,18 +222,19 @@ const CustomizeComponent = (props) => {
 
 export { CustomizeComponent }
 
+
+const CustomizeComponentWrapper = styled.div`
+    width: 100%;
+    background-color: antiquewhite;
+`;
+
 const OptionTypeDisplay = styled.div`
     
 `;
 
 const CustomizeDisplay = styled.div`
-    height: 200px;
+    height: 500px;
     background-color: blueviolet;
-`;
-
-const CustomizeComponentWrapper = styled.div`
-    width: 100%;
-    background-color: antiquewhite;
 `;
 
 const CustomizeOption = styled.div``
@@ -270,7 +297,7 @@ const UpperSection = styled.div`
 
 const LowerSection = styled.div`
     background-color: beige;
-    height: 100px;
+    height: auto;
     width: 100%;
 `
 

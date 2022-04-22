@@ -10,6 +10,7 @@ import { ProductsComponent } from "components";
 
 import {
   HomePage,
+  CartComponent,
   HeaderComponent,
   CustomizeComponent,
   ProductGroupComponent
@@ -48,8 +49,7 @@ const App = (props) => {
       <Body>
         {router()}
       </Body>
-      {/* <Footer /> */}
-      {/* <CartComponent /> */}
+      <CartComponent />
     </AppSection>
 
   )
@@ -63,7 +63,7 @@ const Body = styled.div`
   justify-content: center;
   align-items: center;
   width: 80%;
-
+  
   @media only screen and (max-width: 1050px) {
     width: 100%;
   }
@@ -74,6 +74,7 @@ const AppSection = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
 
   input:-webkit-autofill,
   input:-webkit-autofill:hover, 
