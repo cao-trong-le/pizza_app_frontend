@@ -1,12 +1,14 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route, Redirect, matchPath } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+
+
 
 // Components
 // import cart from "../src_v1/components/cart";
-import { ProductsComponent } from "components";
+import { CheckoutComponent, ProductsComponent } from "components";
 
 import {
   HomePage,
@@ -15,10 +17,43 @@ import {
   CustomizeComponent,
   ProductGroupComponent
 } from "components";
+
 import HardSet from "redux-persist/lib/stateReconciler/hardSet";
+
+import { LoginFormComponent } from "components";
 
 
 const App = (props) => {
+  const [cartStatus, setCartStatus] = useState(true)
+
+  useEffect(() => {
+    const currentURL = window.location.href
+    if (checkSimilarityOfUrl(currentURL)) {
+      setCartStatus(false)
+    } else {
+      setCartStatus(true)
+    }
+  }, [])
+
+  const checkSimilarityOfUrl = (url) => {
+    let urlPaths = url.split("/")
+    let unnessPos = ['http:', 'localhost:3000']
+
+    for (let i = 0; i < unnessPos.length; i++) {
+      let idx = urlPaths.indexOf(unnessPos[i])
+      urlPaths.splice(idx, 1)
+    }
+
+    const match = matchPath(urlPaths.join("/"), {
+      path: ["/login/", "/checkout/"],
+      exact: true,
+      strict: false
+    })
+
+    return match ? true : false
+  }
+
+
   const router = () => {
     return (
       <AnimatePresence>
@@ -32,7 +67,10 @@ const App = (props) => {
             }}
           />
           <Route exact path="/test/" component={ProductsComponent} />
-          <Route exact path="/pizza/checkout/" />
+
+          <Route exact path="/login/" component={LoginFormComponent} />
+
+          <Route exact path="/checkout/" component={CheckoutComponent} />
           <Route exact path="/home/" component={HomePage} />
           <Route exact path="/menu/" component={ProductGroupComponent} />
           <Route exact path="/menu/:productGroup/:productType/" component={ProductsComponent} />
@@ -49,7 +87,7 @@ const App = (props) => {
       <Body>
         {router()}
       </Body>
-      <CartComponent />
+      {cartStatus && <CartComponent />}
     </AppSection>
 
   )
@@ -85,8 +123,8 @@ const AppSection = styled.div`
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
   select:-webkit-autofill:focus {
-      -webkit-text-fill-color: rgb(235,235,235);
-      box-shadow: 0 0 0px 50px rgba(28,28,28,1) inset;
+      -webkit-text-fill-color: rgb(0, 0, 0);
+      box-shadow: 0 0 0px 50px rgba(235, 232, 232, 0) inset;
       transition: background-color 5000s ease-in-out 0s;
   }
 

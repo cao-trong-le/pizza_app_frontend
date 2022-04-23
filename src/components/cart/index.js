@@ -1,2 +1,3 @@
 import { CartComponent } from "./cart";
-export { CartComponent }
+import { CartContainerComponent } from "./cartContainer";
+export { CartComponent, CartContainerComponent }

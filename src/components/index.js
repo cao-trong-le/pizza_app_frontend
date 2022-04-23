@@ -4,12 +4,20 @@ import { ProductGroupComponent } from "./main_body";
 import { ProductsComponent } from "./main_body";
 import { CustomizeComponent } from "./main_body";
 import { CartComponent } from "./cart";
+import { CheckoutComponent } from "./main_body";
+import { CartContainerComponent } from "./cart";
+
+import { LoginFormComponent } from "./form";
 
 export {
     HomePage,
     CartComponent,
     HeaderComponent,
     ProductsComponent,
+    CheckoutComponent,
     CustomizeComponent,
-    ProductGroupComponent
+    CartContainerComponent,
+    ProductGroupComponent,
+
+    LoginFormComponent
 }

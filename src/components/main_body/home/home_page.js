@@ -63,7 +63,7 @@ const SpecialMenuWrapper = styled.div`
 `;
 
 const HomePageWraper = styled.div`
-    height: 100px;
+    height: auto;
     width: 100%;
     border: 1px solid black;
 `;
