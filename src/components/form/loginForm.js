@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { matchPath } from "react-router-dom";
 import styled from "styled-components";
 import axiosInstance from "axios_instance/axiosInstace";
+import { FormValidation } from "./formValidation";
 
 const LoginFormComponent = (props) => {
     // create later
@@ -15,16 +16,48 @@ const LoginFormComponent = (props) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormValues({ ...formValues, [name]: value });
+
+        // set errors
+
+        let errorMsg = {}
+
+        const validator = new FormValidation({ ...formValues, [name]: value })
+        const emailStatus = validator.isValidEmail()
+        const passwordStatus = validator.isValidPassword()
+        const statuses = [
+            emailStatus,
+            passwordStatus
+        ]
+
+        console.log(statuses)
+
+        statuses.forEach((status, index) => {
+            if (!status.status)
+                Object.assign(errorMsg, { [status.type]: status.message })
+        })
+
+        setFormErrors({ ...errorMsg })
+
+        console.log(formErrors)
+        // console.log(statuses)
+        // console.log(statuses.every(i => i))
+
+
+
     };
 
     const handleSubmit = (e) => {
         e.preventDefault()
 
-        axiosInstance
-            .post("api/token/", formValues)
-            .then((res) => {
-                console.log(res.data)
-            })
+
+
+
+
+        // axiosInstance
+        //     .post("api/token/", formValues)
+        //     .then((res) => {
+        //         console.log(res.data)
+        //     })
     }
 
     return (
