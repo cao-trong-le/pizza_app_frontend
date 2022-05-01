@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
-import { matchPath } from "react-router-dom";
+import { Link, matchPath } from "react-router-dom";
 import styled from "styled-components";
 import axiosInstance from "axios_instance/axiosInstace";
 import { FormValidation } from "./formValidation";
@@ -13,55 +13,52 @@ const LoginFormComponent = (props) => {
     const [formErrors, setFormErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    useEffect(() => {
+        setFormValues({ email: "", password: "" })
+        setFormErrors({})
+    }, [])
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormValues({ ...formValues, [name]: value });
 
         // set errors
 
-        let errorMsg = {}
+        // let errorMsg = {}
 
-        const validator = new FormValidation({ ...formValues, [name]: value })
-        const emailStatus = validator.isValidEmail()
-        const passwordStatus = validator.isValidPassword()
-        const statuses = [
-            emailStatus,
-            passwordStatus
-        ]
+        // const validator = new FormValidation({ ...formValues, [name]: value })
+        // const emailStatus = validator.isValidEmail()
+        // const passwordStatus = validator.isValidPassword()
+        // const statuses = [
+        //     emailStatus,
+        //     passwordStatus
+        // ]
 
-        console.log(statuses)
-
-        statuses.forEach((status, index) => {
-            if (!status.status)
-                Object.assign(errorMsg, { [status.type]: status.message })
-        })
-
-        setFormErrors({ ...errorMsg })
-
-        console.log(formErrors)
         // console.log(statuses)
-        // console.log(statuses.every(i => i))
 
+        // statuses.forEach((status, index) => {
+        //     if (!status.status)
+        //         Object.assign(errorMsg, { [status.type]: status.message })
+        // })
 
+        // setFormErrors({ ...errorMsg })
+
+        // console.log(formErrors)
 
     };
 
     const handleSubmit = (e) => {
         e.preventDefault()
 
-
-
-
-
-        // axiosInstance
-        //     .post("api/token/", formValues)
-        //     .then((res) => {
-        //         console.log(res.data)
-        //     })
+        axiosInstance
+            .post("api/token/", formValues)
+            .then((res) => {
+                console.log(res.data)
+            })
     }
 
     return (
-        <LoginFormWrapper>
+        <LoginFormWrapper autoComplete="off">
             {console.log(formValues)}
 
             <div className="form-title">
@@ -75,6 +72,7 @@ const LoginFormComponent = (props) => {
                         name="email"
                         id="email"
                         value={formValues.email}
+                        autoComplete="off"
                         onChange={handleChange}
                     />
                     {formErrors.email && <span>{formErrors.email}</span>}
@@ -87,6 +85,7 @@ const LoginFormComponent = (props) => {
                         name="password"
                         id="password"
                         value={formValues.password}
+                        autoComplete="off"
                         onChange={handleChange}
                     />
                     {formErrors.password && <span>{formErrors.password}</span>}
@@ -95,6 +94,8 @@ const LoginFormComponent = (props) => {
                 <button
                     onClick={handleSubmit}
                     type="submit">Sign In</button>
+
+                <Link to="/register/">Don't have an account yet?</Link>
             </div>
         </LoginFormWrapper>
     )

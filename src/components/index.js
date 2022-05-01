@@ -8,6 +8,7 @@ import { CheckoutComponent } from "./main_body";
 import { CartContainerComponent } from "./cart";
 
 import { LoginFormComponent } from "./form";
+import { RegisterFormComponent } from "./form";
 
 export {
     HomePage,
@@ -19,5 +20,6 @@ export {
     CartContainerComponent,
     ProductGroupComponent,
 
-    LoginFormComponent
+    LoginFormComponent,
+    RegisterFormComponent,
 }

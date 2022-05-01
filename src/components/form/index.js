@@ -1,2 +1,3 @@
 import { LoginFormComponent } from "./loginForm";
-export { LoginFormComponent }
+import { RegisterFormComponent } from "./registerForm";
+export { LoginFormComponent, RegisterFormComponent }

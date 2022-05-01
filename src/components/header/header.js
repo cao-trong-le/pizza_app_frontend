@@ -9,9 +9,10 @@ import { F } from "caniuse-lite/data/agents";
 
 const HeaderComponent = (props) => {
     const [burger, setBurger] = useState(false)
+    const [login, setLogin] = useState(false)
     const { height, width } = useWindowDimensions()
 
-    const directions = [
+    let directions = [
         {
             "title": "Home",
             "icon": "",
@@ -26,36 +27,60 @@ const HeaderComponent = (props) => {
             "title": "Your order(s)",
             "icon": "",
             "url": "/order/"
-        }
+        },
+        {
+            "title": "Login",
+            "icon": "",
+            "url": "/login/"
+        },
+        {
+            "title": "Sign Up",
+            "icon": "",
+            "url": "/register/"
+        },
+        {
+            "title": "Log Out",
+            "icon": "",
+            "url": "/login/"
+        },
     ]
 
     // create later
 
-    const listItemsInMenu = directions.map((item) => (
-        <DirectWrapper >
-            <Link to={item.url}>{item.title}</Link>
-        </DirectWrapper>
-    ))
+    const renderListItemsInMenu = () => {
+        if (login) {
+            directions.splice(3, 2)
+        } else {
+            directions.splice(-1, 1)
+        }
+
+        return directions.map((item) => {
+            return (
+                <DirectWrapper >
+                    <Link to={item.url}>{item.title}</Link>
+                </DirectWrapper>
+            )
+        })
+    }
 
     return (
         <HeaderWrapper burger={burger} windowWidth={width}>
-            {console.log(burger)}
             <LogoSection></LogoSection>
             {(width > 768) && <DesktopNavSection>
-                {listItemsInMenu}
+                {renderListItemsInMenu()}
             </DesktopNavSection>}
 
             {(() => {
                 if (width > 768) {
                     return (
                         <DesktopNavSection>
-                            {listItemsInMenu}
+                            {renderListItemsInMenu()}
                         </DesktopNavSection>
                     )
                 } else if (width < 768 && burger) {
                     return (
                         <DesktopNavSection>
-                            {listItemsInMenu}
+                            {renderListItemsInMenu()}
                         </DesktopNavSection>
                     )
                 } else if (width < 768 && !burger) {
