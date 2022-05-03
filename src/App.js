@@ -20,7 +20,11 @@ import {
 
 import HardSet from "redux-persist/lib/stateReconciler/hardSet";
 
-import { LoginFormComponent, RegisterFormComponent } from "components";
+import {
+  LoginFormComponent,
+  RegisterFormComponent,
+  ProductFormComponent
+} from "components";
 
 
 const App = (props) => {
@@ -45,7 +49,11 @@ const App = (props) => {
     }
 
     const match = matchPath(urlPaths.join("/"), {
-      path: ["/login/", "/checkout/", "/register/"],
+      path: [
+        "/login/",
+        "/checkout/",
+        "/register/",
+        "/add/product/"],
       exact: true,
       strict: false
     })
@@ -70,6 +78,7 @@ const App = (props) => {
 
           <Route exact path="/login/" component={LoginFormComponent} />
           <Route exact path="/register/" component={RegisterFormComponent} />
+          <Route exact path="/add/product/" component={ProductFormComponent} />
 
           <Route exact path="/checkout/" component={CheckoutComponent} />
           <Route exact path="/home/" component={HomePage} />
