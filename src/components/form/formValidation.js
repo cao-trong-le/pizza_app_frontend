@@ -76,8 +76,9 @@ class FormValidation {
         return { ...this.returnValue }
     }
 
-    isEmptyField = (value, message) => {
-        if (value.length == 0) {
+    isEmptyField = (value, message, errorType) => {
+        this.setValidationType(errorType)
+        if (value.toString().length === 0) {
             this.returnValue.status = false
             this.returnValue.message = message
         } else {

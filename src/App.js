@@ -4,8 +4,6 @@ import styled from "styled-components";
 import { BrowserRouter as Router, Switch, Route, Redirect, matchPath } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
-
-
 // Components
 // import cart from "../src_v1/components/cart";
 import { CheckoutComponent, ProductsComponent } from "components";
@@ -21,6 +19,7 @@ import {
 import HardSet from "redux-persist/lib/stateReconciler/hardSet";
 
 import {
+  BaseFormComponent,
   LoginFormComponent,
   RegisterFormComponent,
   ProductFormComponent
@@ -53,7 +52,8 @@ const App = (props) => {
         "/login/",
         "/checkout/",
         "/register/",
-        "/add/product/"],
+        "/new/base/",
+        "/new/product/"],
       exact: true,
       strict: false
     })
@@ -78,7 +78,8 @@ const App = (props) => {
 
           <Route exact path="/login/" component={LoginFormComponent} />
           <Route exact path="/register/" component={RegisterFormComponent} />
-          <Route exact path="/add/product/" component={ProductFormComponent} />
+          <Route exact path="/new/product/" component={ProductFormComponent} />
+          <Route exact path="/new/base/" component={BaseFormComponent} />
 
           <Route exact path="/checkout/" component={CheckoutComponent} />
           <Route exact path="/home/" component={HomePage} />
