@@ -58,7 +58,8 @@ const BaseFormComponent = (props) => {
                 display: "Cheese"
             },
         ],
-        base_note: ""
+        base_medium_only: false,
+        base_instruction: ""
     }
     const intialValues = {
         base_name: "",
@@ -75,7 +76,7 @@ const BaseFormComponent = (props) => {
             name: "none",
             display: "None"
         },
-        base_note: ""
+        base_instruction: ""
     }
     const [formValues, setFormValues] = useState(intialValues);
     const [formDefault, setFormDefault] = useState(defaultValues)
@@ -92,10 +93,7 @@ const BaseFormComponent = (props) => {
     }
 
     const removeUploadedImage = (e) => {
-        console.log(baseFormRef)
-        console.log(e.target.getAttribute("data-id"))
         const element = baseFormRef.current.querySelector(`#${CSS.escape(e.target.getAttribute("data-id"))}`)
-        console.log(element)
         element.value = ""
         setFormValues({ ...formValues, base_image: null })
     }
@@ -112,7 +110,6 @@ const BaseFormComponent = (props) => {
                 ...formValues,
                 [base_section]: value
             })
-
         }
     }
 
@@ -129,8 +126,6 @@ const BaseFormComponent = (props) => {
     const handleError = (name, value, validator) => {
         let errorMsg = { ...formErrors }
         let validStatus = null
-
-        console.log(name, value)
 
         switch (name) {
             case "base_name":
@@ -150,13 +145,12 @@ const BaseFormComponent = (props) => {
                 break
         }
 
-        // console.log(validStatus)
-        console.log(errorMsg)
-
         if (!validStatus.status)
             errorMsg[validStatus.type] = validStatus.message
 
-        setFormErrors({ ...formErrors, [validStatus.type]: validStatus.message })
+        setFormErrors({ ...formErrors, [validStatus.type]: validStatus.message }, () => {
+            console.log(formErrors)
+        })
 
         return validStatus.status
     }
@@ -177,28 +171,42 @@ const BaseFormComponent = (props) => {
                 const checkList = ["base_name", "base_price"]
                 const searchKey = (i) => i === key
                 if (checkList.findIndex(searchKey) !== -1)
-                    if (!handleError(key, value, validator)) break
+                    if (!handleError(key, value, validator)) return false
             }
+
+            return true
         }
+    }
+
+    const reorganizeData = () => {
+        let data = new FormData()
+        for (let [key, value] of Object.entries(formValues)) {
+            if (key === "base_group" || key === "base_type")
+                data.append(key, value.name)
+            if (key === "base_image" && value !== null)
+                data.append(key, value, value.name)
+            data.append(key, value)
+        }
+        return data
     }
 
     const handleSubmit = (e) => {
         e.preventDefault()
 
-        handleValidation({ ...formValues }, false, null, null)
+        if (handleValidation({ ...formValues }, false, null, null)) {
+            console.log("success!!!")
+            console.log(formValues)
 
-        for (let [key, value] of Object.entries(formErrors)) {
-            if (value.length !== 0)
-                console.log("error!!!!")
+            for (let [key, value] of reorganizeData().entries()) {
+                console.log(key, value)
+            }
+
+            // axiosInstance
+            //     .post("/user/register/", formValues)
+            //     .then((res) => {
+            //         console.log(res.data)
+            //     })
         }
-
-        console.log(formValues)
-
-        // axiosInstance
-        //     .post("/user/register/", formValues)
-        //     .then((res) => {
-        //         console.log(res.data)
-        //     })
     }
 
     return (
@@ -207,7 +215,7 @@ const BaseFormComponent = (props) => {
             {console.log(formErrors)}
 
             <div className="form-title">
-                <h1>Register</h1>
+                <h1>New Base</h1>
             </div>
             <div className="form-content">
                 <div className="form-field">

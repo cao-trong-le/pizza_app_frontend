@@ -1,18 +1,35 @@
 /* eslint-disable no-unused-vars */
+/* eslint-disable */
 import React, { useState, useEffect, useRef } from "react";
 import { Link, matchPath } from "react-router-dom";
 import styled from "styled-components";
 import axiosInstance from "axios_instance/axiosInstace";
 import { FormValidation } from "./formValidation";
 import { defaultFormat } from "moment";
+import { FormHelpers } from "./formHelpers";
+import { ValidationHelpers } from "./formHelpers";
+
 
 const ProductFormComponent = (props) => {
     // create later
 
+    const formHelpers = new FormHelpers()
+
     const initialValues = {
-        product_title: "",
+        product_name: "",
         product_desc: "",
-        product_price: {},
+        product_price: {
+            small: 0,
+            medium: 0,
+            large: 0,
+            ex_large: 0
+        },
+        product_discount: {
+            small: 0,
+            medium: 0,
+            large: 0,
+            ex_large: 0
+        },
         product_image: null,
         product_group: {
             default: true,
@@ -27,7 +44,7 @@ const ProductFormComponent = (props) => {
     }
 
     const defaultValues = {
-        product_title: "",
+        product_name: "",
         product_desc: "",
         product_price: {},
         product_image: null,
@@ -46,14 +63,17 @@ const ProductFormComponent = (props) => {
         product_type: {
             pizza: [
                 {
+                    default: true,
                     name: "meat",
                     display: "Meat"
                 },
                 {
+                    default: false,
                     name: "veggie",
                     display: "Veggie"
                 },
                 {
+                    default: false,
                     name: "Cheese",
                     display: "Cheese"
                 },
@@ -61,18 +81,22 @@ const ProductFormComponent = (props) => {
 
             drink: [
                 {
+                    default: true,
                     name: "tea",
                     display: "Tea"
                 },
                 {
+                    default: false,
                     name: "soft_drink",
                     display: "Soft Drink"
                 },
                 {
+                    default: false,
                     name: "milk",
                     display: "Milk"
                 },
                 {
+                    default: false,
                     name: "smoothie",
                     display: "Smoothie"
                 },
@@ -102,32 +126,129 @@ const ProductFormComponent = (props) => {
         product_base: {}
     }
 
+    let errors = {
+        product_price: {
+            small: "",
+            medium: "",
+            large: "",
+            ex_large: ""
+        },
+        product_discount: {
+            small: "",
+            medium: "",
+            large: "",
+            ex_large: ""
+        }
+    }
+
+    let validationTargets = [
+        { name: "product_name", nested: false, function: null, params: [] },
+        { name: "product_price", nested: true, function: null, params: [] },
+        { name: "product_discount", nested: true, function: null, params: [] }
+    ]
+
     const [formDefault, setFormDefault] = useState(defaultValues)
-    const [formValues, setFormValues] = useState(initialValues);
-    const [formErrors, setFormErrors] = useState({});
+    const [formValues, setFormValues] = useState(initialValues)
+    const [validateCards, setValidateCards] = useState(validationTargets)
+    const [formErrors, setFormErrors] = useState(errors);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        setFormValues((formValues) => ({
+            ...formValues,
+            product_type: formDefault.product_type[formValues.product_group.name][0]
+        }))
+    }, [formValues.product_group])
+
+    // const setDefaultType = () => {
+
+    // }
+
+    useEffect(() => {
+        if (formValues.product_group.name === "pizza") {
+            setFormValues((formValues) => ({
+                ...formValues,
+                product_price: {
+                    small: 0,
+                    medium: 0,
+                    large: 0,
+                    ex_large: 0
+                },
+                product_discount: {
+                    small: 0,
+                    medium: 0,
+                    large: 0,
+                    ex_large: 0
+                },
+            }))
+
+            setFormErrors((formErrors) => ({
+                ...formErrors,
+                product_price: {
+                    small: "",
+                    medium: "",
+                    large: "",
+                    ex_large: ""
+                },
+                product_discount: {
+                    small: "",
+                    medium: "",
+                    large: "",
+                    ex_large: ""
+                }
+            }))
+
+            setValidateCards((validateCards) => {
+                return validateCards.map((card, index) => {
+                    if (index === 1 || index === 2)
+                        return { ...card, nested: true }
+                })
+            })
+        } else {
+            setFormValues((formValues) => ({
+                ...formValues,
+                product_price: 0,
+                product_discount: 0
+            }))
+
+            setFormErrors((formErrors) => ({
+                ...formErrors,
+                product_price: "",
+                product_discount: ""
+            }))
+
+            setValidateCards((validateCards) => {
+                return validateCards.map((card, index) => {
+                    if (index === 1 || index === 2)
+                        return { ...card, nested: false }
+                })
+            })
+        }
+    }, [formValues.product_group])
+
+    const productFormRef = useRef()
+
+    const handleUploadedImage = (e) => setFormValues({ ...formValues, product_image: e.target.files[0] })
+
+    const removeUploadedImage = (e) => {
+        const element = productFormRef.current.querySelector(`#${CSS.escape(e.target.getAttribute("data-id"))}`)
+        element.value = ""
+        setFormValues({ ...formValues, product_image: null })
+    }
 
     const handleClick = (inputType, product_section, e) => {
         const option_name = e.target.getAttribute("data-option-name")
         let value = null
         let data = []
-        console.log(e.target)
-        console.log(product_section)
-        console.log(option_name)
+
         if (inputType === "radio") {
             switch (product_section) {
                 case "product_group":
-                    // const searchProductGroup = (group) => group.name === option_name;
-                    // const index = formDefault[product_section].findIndex(searchProductGroup)
-                    // value = formDefault[]
-
                     value = formDefault[product_section][e.target.id]
                     break
                 case "product_type":
                     value = formDefault[product_section][formValues["product_group"].name][e.target.id]
-                    console.log(value)
                     break
-
                 default:
                     break
             }
@@ -141,7 +262,6 @@ const ProductFormComponent = (props) => {
         } else {
             switch (product_section) {
                 case "product_size":
-                    console.log(e.target.checked)
                     value = formDefault.product_size[e.target.id]
                     const searchProductSize = (size => size.name === e.target.getAttribute("data-option-name"))
                     const isExist = formValues.product_size.findIndex(searchProductSize)
@@ -155,7 +275,6 @@ const ProductFormComponent = (props) => {
                             data.splice(isExist, 1)
                         }
                     }
-                    // console.log(e.target)
                     break
                 default:
                     break
@@ -168,137 +287,254 @@ const ProductFormComponent = (props) => {
         }
     }
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormValues({ ...formValues, [name]: value });
+    // const handleSingleValidation = (data, name, value) => {
+    //     const validationStatus = handleValidation(
+    //         data,
+    //         true,
+    //         name,
+    //         value,
+    //         false,
+    //         null)
 
-        // set errors
+    //     console.log(validationStatus)
 
-        let errorMsg = {}
+    //     setFormErrors({
+    //         ...formErrors,
+    //         [validationStatus.type]: validationStatus.status ? "" : validationStatus.message
+    //     })
 
-        const validator = new FormValidation({ ...formValues, [name]: value })
+    // }
+
+    // const handleMultiValidation = (data, name, value, m_key) => {
+    //     const validationStatus = handleValidation(
+    //         data,
+    //         true,
+    //         name,
+    //         value,
+    //         true,
+    //         m_key)
+    //     setFormErrors({
+    //         ...formErrors,
+    //         product_price: {
+    //             ...formErrors.product_price,
+    //             [validationStatus.type]: validationStatus.status ? "" : validationStatus.message
+    //         }
+    //     })
+    // }
+
+    // const handleProductPrice = (e) => {
+    //     const { name, value } = e.target
+
+    //     const data = {
+    //         ...formValues.product_price,
+    //         [name]: value
+    //     }
+
+    //     setFormValues({
+    //         ...formValues,
+    //         product_price: data
+    //     })
+
+    //     const updatedData = { ...formValues, product_price: { ...data } }
+
+    //     handleValidation(updatedData, true, name, value, true, "product_price")
+
+    //     handleMultiValidation(updatedData, name, value, "product_price")
+    // }
+
+    // const handleChange = (e) => {
+    //     const { name, value } = e.target;
+    //     console.log(name, value)
+    //     setFormValues({ ...formValues, [name]: value });
+    //     handleSingleValidation({ ...formValues, [name]: value }, name, value)
+    //     // set errors
+    // };
+
+    const handleError = (name, value, validator, nested = false, m_key = null) => {
         let validStatus = null
 
-        switch (name) {
-            case "first_name":
-                validStatus = validator.checkFirstNameField(1, 100)
-                break
-            case "last_name":
-                validStatus = validator.checkLastNameField(1, 100)
-                break
-            case "username":
-                validStatus = validator.checkUsernameField(8, 100)
-                break
-            case "email":
-                validStatus = validator.checkEmailField()
-                break
-            case "password":
-                validStatus = validator.checkPasswordField(8, 100, true)
-                break
-            case "re_password":
-                validStatus = validator.checkConfirmPasswordField()
-                break
-            default:
-                break
+        console.log(name, value)
+
+        if (!nested) {
+            switch (name) {
+                case "product_name":
+                    validStatus = validator.isEmptyField(
+                        value,
+                        `Oops, It is empty!`,
+                        name)
+                    break
+                case "product_price":
+                    validStatus = validator.isEmptyField(
+                        value,
+                        `Oops, It is empty!`,
+                        name)
+                    break
+                case "product_discount":
+                    validStatus = validator.isEmptyField(
+                        value,
+                        `Oops, It is empty!`,
+                        name)
+                    break
+                default:
+                    break
+            }
+        } else {
+            switch (m_key) {
+                case "product_price":
+                    validStatus = validator.isEmptyField(
+                        value,
+                        `You need a specific price`,
+                        name)
+                    break
+                case "product_discount":
+                    validStatus = validator.isEmptyField(
+                        value,
+                        `You need a specific discount value`,
+                        name)
+                    break
+                default:
+                    break
+            }
         }
 
-        console.log(validStatus)
-
-        if (!validStatus.status)
-            errorMsg[validStatus.type] = validStatus.message
-        // Object.assign(errorMsg, { [validStatus.type]: validStatus.message })
-
-        setFormErrors({ ...formErrors, [validStatus.type]: validStatus.message })
-
-        console.log(formErrors)
-
-    };
-
-    const handleUploadedImage = (e) => {
-        console.log(e.target.files[0])
-        setFormValues({ ...formValues, product_image: e.target.files[0] })
+        return validStatus
     }
 
-    const handleProductPrice = (e) => {
-        const value = {
-            ...formValues.product_price,
-            [e.target.name]: e.target.value
+
+    const accessValidationHelpers = () => {
+        const validationHelpers = new ValidationHelpers(
+            validateCards,
+            { ...formValues },
+            handleError,
+            formValues,
+            formErrors,
+            setFormValues,
+            setFormErrors
+        )
+
+        return validationHelpers
+    }
+
+    const reorganizeData = () => {
+        let data = new FormData()
+        for (let [key, value] of Object.entries(formValues)) {
+            if (key === "product_group")
+                data.append(key, value.name)
+            if (key === "product_image" && value !== null)
+                data.append(key, value, value.name)
+            data.append(key, value)
         }
-        setFormValues({
-            ...formValues,
-            product_price: value
-        })
-    }
-
-    const renderProductPrice = () => {
-        return formValues.product_size.map((size, index) => {
-            return (
-                <React.Fragment key={index}>
-                    <label htmlFor={size.name}>{size.display}</label>
-                    <input
-                        type="number"
-                        className="product_price"
-                        name={size.name}
-                        onChange={handleProductPrice}
-                        placeholder={0} />
-                </React.Fragment>
-            )
-        })
-    }
-
-    const renderOptionList = (optionList, inputType, optionName, productSection) => {
-        return optionList.map((option, index) => {
-            return (
-                <React.Fragment key={index}>
-                    <input
-                        key={index}
-                        data-option-name={option.name}
-                        type={inputType}
-                        name={inputType === "checkbox" ? option.name : optionName}
-                        id={index}
-                        defaultChecked={(() => {
-                            if (productSection === "product_group") {
-                                return option.default
-                            } else {
-                                return false
-                            }
-                        })()}
-                        onClick={((e) => { handleClick(inputType, productSection, e) })}
-                    />
-                    <label for={option.name}>{option.display}</label>
-                </React.Fragment>
-            )
-        })
+        return data
     }
 
     const handleSubmit = (e) => {
         e.preventDefault()
 
-        axiosInstance
-            .post("/user/register/", formValues)
-            .then((res) => {
-                console.log(res.data)
+        if (handleValidation({ ...formValues }, false, null, null, false, null)) {
+            console.log("success!!!")
+            console.log(formValues)
+
+            for (let [key, value] of reorganizeData().entries()) {
+                console.log(key, value)
+            }
+
+            // axiosInstance
+            //     .post("/user/register/", formValues)
+            //     .then((res) => {
+            //         console.log(res.data)
+            //     })
+        } else {
+            console.log("fail!!!")
+        }
+    }
+
+    const renderProductPrice = () => {
+        console.log(formValues.product_size)
+        if (formValues.product_group.name === "pizza") {
+            return formValues.product_size.map((size, index) => {
+                return (
+                    <React.Fragment key={index}>
+                        <label htmlFor={size.name}>{size.display}</label>
+                        <input
+                            type="number"
+                            className="product_price"
+                            name={size.name}
+                            onChange={(e) => { accessValidationHelpers().handleNestedChange(e, "product_price", size.name) }}
+                            value={formValues.product_price[size.name]}
+                            placeholder={0} />
+                        {(Object.keys(formErrors.product_price).length !== 0) && <span>{formErrors.product_price[size.name]}</span>}
+                    </React.Fragment>
+                )
             })
+        } else {
+            return (
+                <React.Fragment>
+                    <input
+                        type="number"
+                        className="product_price"
+                        name="product_price"
+                        onChange={(e) => { accessValidationHelpers().handleChange(e) }}
+                        value={formValues.product_price}
+                        placeholder={0} />
+                    {formErrors.product_price && <span>{formErrors.product_price}</span>}
+                </React.Fragment>
+            )
+        }
+    }
+
+    const renderProductDiscount = () => {
+        if (formValues.product_group.name === "pizza") {
+            return formValues.product_size.map((size, index) => {
+                return (
+                    <React.Fragment key={index}>
+                        <label htmlFor={size.name}>{size.display}</label>
+                        {console.log(size)}
+                        <input
+                            type="number"
+                            className="product_discount"
+                            name={size.name}
+                            onChange={(e) => { accessValidationHelpers().handleNestedChange(e, "product_discount", size.name) }}
+                            value={formValues.product_discount[size.name]}
+                            placeholder={0} />
+                        {(Object.keys(formErrors.product_discount).length !== 0) && <span>{formErrors.product_discount[size.name]}</span>}
+                    </React.Fragment>
+                )
+            })
+        } else {
+            return (
+                <React.Fragment>
+                    <input
+                        type="number"
+                        className="product_discount"
+                        name="product_discount"
+                        onChange={(e) => { accessValidationHelpers().handleChange(e) }}
+                        value={formValues.product_discount}
+                        placeholder={0} />
+                    {formErrors.product_discount && <span>{formErrors.product_discount}</span>}
+                </React.Fragment>
+            )
+        }
     }
 
     return (
-        <ProductFormWrapper>
+        <ProductFormWrapper ref={productFormRef}>
             {console.log(formValues)}
+            {console.log(formErrors)}
 
             <div className="form-title">
                 <h1>New Product</h1>
             </div>
             <div className="form-content">
                 <div className="form-field">
-                    <label htmlFor="first_name">Product Title</label>
+                    <label htmlFor="product_name">Product Title</label>
                     <input
                         type="text"
-                        name="product_title"
-                        id="product_title"
-                        value={formValues.product_title}
-                        onChange={handleChange}
+                        name="product_name"
+                        id="product_name"
+                        value={formValues.product_name}
+                        onChange={(e) => { accessValidationHelpers().handleChange(e) }}
                     />
-                    {formErrors.product_title && <span>{formErrors.product_title}</span>}
+                    {formErrors.product_name && <span>{formErrors.product_name}</span>}
                 </div>
 
                 <div className="form-field">
@@ -308,7 +544,7 @@ const ProductFormComponent = (props) => {
                         name="product_desc"
                         id="product_desc"
                         value={formValues.product_desc}
-                        onChange={handleChange}
+                        onChange={(e) => { accessValidationHelpers().handleChange(e) }}
                     />
                     {formErrors.product_desc && <span>{formErrors.product_desc}</span>}
                 </div>
@@ -316,32 +552,33 @@ const ProductFormComponent = (props) => {
                 <div className="form-field">
                     <fieldset>
                         <legend>Product Group</legend>
-                        {renderOptionList(
+                        {formHelpers.renderOptionList(
                             formDefault.product_group,
                             "radio",
                             "product_group",
-                            "product_group"
+                            "product_group",
+                            ["product_group"],
+                            handleClick
+                        )}
+
+                    </fieldset>
+                </div>
+
+
+                <div className="form-field">
+                    <fieldset>
+                        <legend>Product Type</legend>
+                        {formHelpers.renderOptionList(
+                            formDefault.product_type[formValues.product_group.name],
+                            "radio",
+                            "product_type",
+                            "product_type",
+                            ["product_type"],
+                            handleClick
                         )}
                     </fieldset>
                 </div>
 
-                {(() => {
-                    if (formValues.product_group !== null) {
-                        return (
-                            <div className="form-field">
-                                <fieldset>
-                                    <legend>Product Type</legend>
-                                    {renderOptionList(
-                                        formDefault.product_type[formValues.product_group.name],
-                                        "radio",
-                                        "product_type",
-                                        "product_type"
-                                    )}
-                                </fieldset>
-                            </div>
-                        )
-                    }
-                })()}
 
                 {(() => {
                     if (formValues.product_group !== null
@@ -350,12 +587,15 @@ const ProductFormComponent = (props) => {
                             <div className="form-field">
                                 <fieldset>
                                     <legend>Pick product sizes</legend>
-                                    {renderOptionList(
+                                    {formHelpers.renderOptionList(
                                         formDefault.product_size,
                                         "checkbox",
                                         "product_size",
-                                        "product_size"
+                                        "product_size",
+                                        null,
+                                        handleClick
                                     )}
+
                                 </fieldset>
                             </div>
                         )
@@ -370,23 +610,20 @@ const ProductFormComponent = (props) => {
                 </div>
 
                 <div className="form-field">
+                    <fieldset>
+                        <legend>Product Discount</legend>
+                        {renderProductDiscount()}
+                    </fieldset>
+                </div>
+
+                <div className="form-field">
                     <label htmlFor="last_name">Product Image</label>
-                    <input
-                        type="file"
-                        name="product_image"
-                        id="product_image"
-                        // value={formValues.product_desc}
-                        onChange={handleUploadedImage}
-                    />
-                    <div className="preview-section">
-                        <img src={(() => {
-                            if (formValues.product_image !== null)
-                                return URL.createObjectURL(formValues.product_image)
-                            else
-                                return ""
-                        })()} alt="product_image" />
-                    </div>
-                    {formErrors.product_desc && <span>{formErrors.product_desc}</span>}
+                    {formHelpers.renderImage(
+                        "product_image",
+                        handleUploadedImage,
+                        removeUploadedImage,
+                        formValues.product_image
+                    )}
                 </div>
 
                 <button

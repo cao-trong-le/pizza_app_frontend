@@ -310,15 +310,10 @@ class FormValidation {
                 "Oops! this password must contains at least a special character."),
         ]
 
-        console.log(scanLists)
+        if (!special) scanLists.splice(-1, 1)
 
-        if (!special)
-            scanLists.splice(-1, 1)
-
-        for (let scan of scanLists) {
-            if (!scan.status)
-                return { ...scan }
-        }
+        for (let scan of scanLists)
+            if (!scan.status) return { ...scan }
 
         return { ...this.returnValue }
     }
