@@ -8,7 +8,8 @@ import { FormValidation } from "./formValidation";
 import { defaultFormat } from "moment";
 import { FormHelpers } from "./formHelpers";
 import { ValidationHelpers } from "./formHelpers";
-
+import { F } from "caniuse-lite/data/agents";
+import axios from "axios";
 
 const ProductFormComponent = (props) => {
     // create later
@@ -40,7 +41,8 @@ const ProductFormComponent = (props) => {
         product_size: [],
         product_note: "",
         product_carlos: {},
-        product_base: {}
+        product_base: {},
+        product_is_sample: false
     }
 
     const defaultValues = {
@@ -101,7 +103,6 @@ const ProductFormComponent = (props) => {
                     display: "Smoothie"
                 },
             ]
-
         },
         product_size: [
             {
@@ -123,7 +124,8 @@ const ProductFormComponent = (props) => {
         ],
         product_note: "",
         product_carlos: {},
-        product_base: {}
+        product_base: {},
+        product_is_sample: false
     }
 
     let errors = {
@@ -198,12 +200,6 @@ const ProductFormComponent = (props) => {
                 }
             }))
 
-            setValidateCards((validateCards) => {
-                return validateCards.map((card, index) => {
-                    if (index === 1 || index === 2)
-                        return { ...card, nested: true }
-                })
-            })
         } else {
             setFormValues((formValues) => ({
                 ...formValues,
@@ -216,13 +212,6 @@ const ProductFormComponent = (props) => {
                 product_price: "",
                 product_discount: ""
             }))
-
-            setValidateCards((validateCards) => {
-                return validateCards.map((card, index) => {
-                    if (index === 1 || index === 2)
-                        return { ...card, nested: false }
-                })
-            })
         }
     }, [formValues.product_group])
 
@@ -287,68 +276,6 @@ const ProductFormComponent = (props) => {
         }
     }
 
-    // const handleSingleValidation = (data, name, value) => {
-    //     const validationStatus = handleValidation(
-    //         data,
-    //         true,
-    //         name,
-    //         value,
-    //         false,
-    //         null)
-
-    //     console.log(validationStatus)
-
-    //     setFormErrors({
-    //         ...formErrors,
-    //         [validationStatus.type]: validationStatus.status ? "" : validationStatus.message
-    //     })
-
-    // }
-
-    // const handleMultiValidation = (data, name, value, m_key) => {
-    //     const validationStatus = handleValidation(
-    //         data,
-    //         true,
-    //         name,
-    //         value,
-    //         true,
-    //         m_key)
-    //     setFormErrors({
-    //         ...formErrors,
-    //         product_price: {
-    //             ...formErrors.product_price,
-    //             [validationStatus.type]: validationStatus.status ? "" : validationStatus.message
-    //         }
-    //     })
-    // }
-
-    // const handleProductPrice = (e) => {
-    //     const { name, value } = e.target
-
-    //     const data = {
-    //         ...formValues.product_price,
-    //         [name]: value
-    //     }
-
-    //     setFormValues({
-    //         ...formValues,
-    //         product_price: data
-    //     })
-
-    //     const updatedData = { ...formValues, product_price: { ...data } }
-
-    //     handleValidation(updatedData, true, name, value, true, "product_price")
-
-    //     handleMultiValidation(updatedData, name, value, "product_price")
-    // }
-
-    // const handleChange = (e) => {
-    //     const { name, value } = e.target;
-    //     console.log(name, value)
-    //     setFormValues({ ...formValues, [name]: value });
-    //     handleSingleValidation({ ...formValues, [name]: value }, name, value)
-    //     // set errors
-    // };
 
     const handleError = (name, value, validator, nested = false, m_key = null) => {
         let validStatus = null
@@ -417,12 +344,22 @@ const ProductFormComponent = (props) => {
 
     const reorganizeData = () => {
         let data = new FormData()
+        let raw_data = {}
+
+        // filter data
         for (let [key, value] of Object.entries(formValues)) {
-            if (key === "product_group")
-                data.append(key, value.name)
+            if (key === "product_group" || key === "product_type" || key === "product_size")
+                raw_data[key] = value.name
+            else
+                raw_data[key] = value
+        }
+
+        // append data into FormData
+        for (let [key, value] of Object.entries(formValues)) {
             if (key === "product_image" && value !== null)
                 data.append(key, value, value.name)
-            data.append(key, value)
+            else
+                data.append(key, value)
         }
         return data
     }
@@ -430,21 +367,19 @@ const ProductFormComponent = (props) => {
     const handleSubmit = (e) => {
         e.preventDefault()
 
-        if (handleValidation({ ...formValues }, false, null, null, false, null)) {
+        console.log(accessValidationHelpers().handleValidation(false, null, null, false, null))
+
+        if (accessValidationHelpers().handleValidation(false, null, null, false, null)) {
             console.log("success!!!")
             console.log(formValues)
 
-            for (let [key, value] of reorganizeData().entries()) {
-                console.log(key, value)
-            }
+            const data = reorganizeData()
 
-            // axiosInstance
-            //     .post("/user/register/", formValues)
-            //     .then((res) => {
-            //         console.log(res.data)
-            //     })
-        } else {
-            console.log("fail!!!")
+            axios
+                .post("/product/", data)
+                .then((res) => {
+                    console.log(res.data)
+                })
         }
     }
 
@@ -462,6 +397,7 @@ const ProductFormComponent = (props) => {
                             onChange={(e) => { accessValidationHelpers().handleNestedChange(e, "product_price", size.name) }}
                             value={formValues.product_price[size.name]}
                             placeholder={0} />
+                        {formErrors[size.name] && <span>{formErrors[size.name]}</span>}
                         {(Object.keys(formErrors.product_price).length !== 0) && <span>{formErrors.product_price[size.name]}</span>}
                     </React.Fragment>
                 )
@@ -476,7 +412,7 @@ const ProductFormComponent = (props) => {
                         onChange={(e) => { accessValidationHelpers().handleChange(e) }}
                         value={formValues.product_price}
                         placeholder={0} />
-                    {formErrors.product_price && <span>{formErrors.product_price}</span>}
+                    {(formErrors.product_price && typeof formErrors.product_price !== "object") && <span>{formErrors.product_price}</span>}
                 </React.Fragment>
             )
         }
@@ -510,7 +446,7 @@ const ProductFormComponent = (props) => {
                         onChange={(e) => { accessValidationHelpers().handleChange(e) }}
                         value={formValues.product_discount}
                         placeholder={0} />
-                    {formErrors.product_discount && <span>{formErrors.product_discount}</span>}
+                    {(formErrors.product_discount && typeof formErrors.product_price !== "object") && <span>{formErrors.product_discount}</span>}
                 </React.Fragment>
             )
         }

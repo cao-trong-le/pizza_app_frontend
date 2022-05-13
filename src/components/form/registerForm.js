@@ -69,16 +69,23 @@ const RegisterFormComponent = (props) => {
         // Object.assign(errorMsg, { [validStatus.type]: validStatus.message })
 
         setFormErrors({ ...formErrors, [validStatus.type]: validStatus.message })
-
-        console.log(formErrors)
-
     };
+
+    const reorganizeData = () => {
+        let data = new FormData()
+        data.append("request_event", "register_user")
+        for (let [key, value] of Object.entries(formValues))
+            data.append(key, value)
+        return data
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault()
 
+        const data = reorganizeData()
+
         axiosInstance
-            .post("/user/register/", formValues)
+            .post("/user/register/", data)
             .then((res) => {
                 console.log(res.data)
             })
@@ -87,6 +94,7 @@ const RegisterFormComponent = (props) => {
     return (
         <RegisterFormWrapper>
             {console.log(formValues)}
+            {console.log(formErrors)}
 
             <div className="form-title">
                 <h1>Register</h1>
@@ -147,6 +155,7 @@ const RegisterFormComponent = (props) => {
                         type="password"
                         name="password"
                         id="password"
+                        autoComplete=""
                         value={formValues.password}
                         onChange={handleChange}
                     />

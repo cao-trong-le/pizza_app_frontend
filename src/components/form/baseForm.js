@@ -5,13 +5,17 @@ import styled from "styled-components";
 import axiosInstance from "axios_instance/axiosInstace";
 import { FormValidation } from "./formValidation";
 import { FormHelpers } from "./formHelpers";
+import { ValidationHelpers } from "./formHelpers";
+// const Compress = require('compress.js')
+import Compress from "compress.js";
+import axios from "axios";
 
 const BaseFormComponent = (props) => {
     // create later
 
     const defaultValues = {
         base_name: "",
-        base_desc: "",
+        base_description: "",
         base_price: 0,
         base_image: null,
         base_group: [
@@ -59,11 +63,11 @@ const BaseFormComponent = (props) => {
             },
         ],
         base_medium_only: false,
-        base_instruction: ""
+        base_note: ""
     }
     const intialValues = {
         base_name: "",
-        base_desc: "",
+        base_description: "",
         base_price: 0,
         base_image: null,
         base_group: {
@@ -76,7 +80,8 @@ const BaseFormComponent = (props) => {
             name: "none",
             display: "None"
         },
-        base_instruction: ""
+        base_medium_only: false,
+        base_note: ""
     }
     const [formValues, setFormValues] = useState(intialValues);
     const [formDefault, setFormDefault] = useState(defaultValues)
@@ -87,15 +92,79 @@ const BaseFormComponent = (props) => {
 
     const baseFormRef = useRef()
 
+    const accessFormValidation = () => {
+        const formValidate = new FormValidation({ ...formValues })
+        return formValidate
+    }
+
+    const accessValidationHelpers = () => {
+        const validationHelpers = new ValidationHelpers(
+            validateCards,
+            { ...formValues },
+            handleError,
+            formValues,
+            formErrors,
+            setFormValues,
+            setFormErrors
+        )
+
+        return validationHelpers
+    }
+
     const handleUploadedImage = (e) => {
-        console.log(e.target.files[0])
-        setFormValues({ ...formValues, base_image: e.target.files[0] })
+        const file = e.target.files[0]
+        console.log(file)
+        const isValidSize = accessFormValidation().isValidImage(file.size, "The uploaded image cannot be bigger than 5mb.")
+
+        if (isValidSize.status) {
+            // compress the uploaded image
+            // Initialization
+            const compress = new Compress()
+
+            // Attach listener
+
+            const files = [...e.target.files]
+            compress.compress(files, {
+                size: 4,
+                quality: .75,
+                maxWidth: 350,
+                maxHeight: 350,
+                resize: true,
+                rotate: false,
+            }).then((data) => {
+                const img1 = data[0]
+                const base64str = img1.data
+                const imgExt = img1.ext
+                // convert image into blob type
+                const blob = Compress.convertBase64ToFile(base64str, imgExt)
+
+                // convert blob => a file
+                const file = new File([blob], img1.alt, {
+                    type: imgExt,
+                    lastModified: new Date().getTime()
+                })
+
+                console.log(file)
+                console.log(img1)
+                setFormValues({ ...formValues, base_image: file })
+            })
+        } else {
+            setFormErrors({ ...formErrors, [isValidSize.type]: isValidSize.message })
+        }
+
+        setFormValues({ ...formValues, base_image: file })
     }
 
     const removeUploadedImage = (e) => {
         const element = baseFormRef.current.querySelector(`#${CSS.escape(e.target.getAttribute("data-id"))}`)
         element.value = ""
         setFormValues({ ...formValues, base_image: null })
+    }
+
+    const handleTick = (e) => {
+        const { name, checked } = e.target
+        // console.log(name, !checked)
+        setFormValues({ ...formValues, [name]: checked })
     }
 
     const handleClick = (inputType, base_section, e) => {
@@ -145,14 +214,12 @@ const BaseFormComponent = (props) => {
                 break
         }
 
-        if (!validStatus.status)
+        if (validStatus !== null) {
             errorMsg[validStatus.type] = validStatus.message
 
-        setFormErrors({ ...formErrors, [validStatus.type]: validStatus.message }, () => {
-            console.log(formErrors)
-        })
-
-        return validStatus.status
+            setFormErrors({ ...formErrors, [validStatus.type]: validStatus.message })
+            return validStatus.status
+        }
     }
 
     const handleValidation = (
@@ -180,12 +247,23 @@ const BaseFormComponent = (props) => {
 
     const reorganizeData = () => {
         let data = new FormData()
+
+        let raw_data = {}
+
+        // filter data
         for (let [key, value] of Object.entries(formValues)) {
             if (key === "base_group" || key === "base_type")
-                data.append(key, value.name)
+                raw_data[key] = value.name
+            else
+                raw_data[key] = value
+        }
+
+        // set data into formData
+        for (let [key, value] of Object.entries(raw_data)) {
             if (key === "base_image" && value !== null)
                 data.append(key, value, value.name)
-            data.append(key, value)
+            else
+                data.append(key, value)
         }
         return data
     }
@@ -197,21 +275,30 @@ const BaseFormComponent = (props) => {
             console.log("success!!!")
             console.log(formValues)
 
-            for (let [key, value] of reorganizeData().entries()) {
-                console.log(key, value)
-            }
 
-            // axiosInstance
-            //     .post("/user/register/", formValues)
-            //     .then((res) => {
-            //         console.log(res.data)
-            //     })
+            // for (let [key, value] of reorganizeData().entries()) {
+            //     console.log(key, value)
+            // }
+
+            // console.log(JSON.parse(reorganizeData()))
+            const formData = reorganizeData()
+
+            // add event name
+            formData.append("request_event", "add_base")
+
+            axios
+                .post("http://127.0.0.1:8000/product/base/", formData, {
+                    headers: { 'content-type': 'multipart/form-data' }
+                })
+                .then((res) => {
+                    console.log(res.data)
+                })
         }
     }
 
     return (
         <BaseFormWrapper ref={baseFormRef}>
-            {/* {console.log(formValues)} */}
+            {console.log(formValues)}
             {console.log(formErrors)}
 
             <div className="form-title">
@@ -225,9 +312,7 @@ const BaseFormComponent = (props) => {
                         name="base_name"
                         id="base_name"
                         value={formValues.base_name}
-                        onChange={handleChange}
-                    // onFocus={handleChange}
-                    />
+                        onChange={handleChange} />
                     {formErrors.base_name && <span>{formErrors.base_name}</span>}
                 </div>
 
@@ -235,14 +320,22 @@ const BaseFormComponent = (props) => {
                     <label htmlFor="base_desc">Base Description</label>
                     <input
                         type="text"
-                        name="base_desc"
-                        id="base_desc"
+                        name="base_description"
+                        id="base_description"
                         value={formValues.base_desc}
-                        onChange={handleChange}
-                    />
-                    {formErrors.base_desc && <span>{formErrors.base_desc}</span>}
+                        onChange={handleChange} />
+                    {formErrors.base_description && <span>{formErrors.base_description}</span>}
                 </div>
 
+                <div className="form-field">
+                    <label htmlFor="base_name">Medium Only</label>
+                    <input
+                        type="checkbox"
+                        name="base_medium_only"
+                        id="base_medium_only"
+                        defaultChecked={formValues.base_medium_only}
+                        onClick={handleTick} />
+                </div>
 
                 {(() => {
                     if (formValues.base_group !== null) {
@@ -316,6 +409,7 @@ const BaseFormComponent = (props) => {
                         handleUploadedImage,
                         removeUploadedImage,
                         formValues.base_image)}
+                    {formErrors.base_image && <span>{formErrors.base_image}</span>}
                 </div>
 
                 <button

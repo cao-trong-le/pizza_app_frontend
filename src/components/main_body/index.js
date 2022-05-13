@@ -3,6 +3,7 @@ import { ProductGroupComponent } from "./product_groups";
 import { ProductsComponent } from "./products";
 import { CustomizeComponent } from "./customize_page";
 import { CheckoutComponent } from "./checkout";
+import { BaseComponent } from "./bases";
 
 
 export {
@@ -10,6 +11,8 @@ export {
     ProductsComponent,
     CheckoutComponent,
     CustomizeComponent,
-    ProductGroupComponent
+    ProductGroupComponent,
+
+    BaseComponent
 }
 

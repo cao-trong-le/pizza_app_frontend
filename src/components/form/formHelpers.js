@@ -6,6 +6,10 @@ class FormHelpers {
         this.defaultNames = []
     }
 
+    resizeImage = () => {
+
+    }
+
     renderOptionList = (
         optionsList,
         inputType,
@@ -122,6 +126,23 @@ class ValidationHelpers {
         })
     }
 
+    // handleChangeTest = (e, nested = false, mainKey = null) => {
+    //     const { name, value } = e.target;
+    //     if (nested) {
+    //         const keyValue = { ...this.updatedData[mainKey], [name]: value }
+    //         this.setFormValues({ ...this.updatedData, [mainKey]: keyValue })
+    //     } else {
+    //         this.setFormValues({ ...this.updatedData, [name]: value })
+    //         this.handleSingleValidation({ ...this.updatedData, [name]: value }, name, value)
+    //     }
+    // };
+
+    // requireFields = []
+
+    // verifyForm = (requiredFields) => {
+
+    // }
+
     handleChange = (e) => {
         const { name, value } = e.target;
         this.setFormValues({ ...this.updatedData, [name]: value });
@@ -149,12 +170,17 @@ class ValidationHelpers {
 
 
     scanValidateTargets = (validator) => {
+        console.log("comming through")
+        console.log(this.validateTargets)
         let status = true
         for (let [key, value] of Object.entries(this.updatedData)) {
+            console.log(key, value)
             const searchValidateCard = (card) => key === card.name
-            const index = this.validateTargets.indexOf(searchValidateCard)
+            const index = this.validateTargets.findIndex(searchValidateCard)
+            console.log(index)
 
             if (index !== -1 && this.validateTargets[index].nested) {
+                console.log("it's nested")
                 for (let [nested_key, nested_value] of Object.entries(value)) {
                     this.handleMultiValidation(this.updatedData, nested_key, nested_value, key)
                     if (!this.handleError(nested_key, nested_value, validator, true, key).status)
@@ -162,6 +188,7 @@ class ValidationHelpers {
                 }
                 break
             } else if (index !== -1 && !this.validateTargets[index].nested) {
+                console.log("it's not nested")
                 this.handleSingleValidation(this.updatedData, key, value)
                 status = this.handleError(key, value, validator, false, null).status
                 break
@@ -186,7 +213,7 @@ class ValidationHelpers {
             return this.handleError(fieldName, fieldValue, validator, nested, m_key)
         }
         else
-            this.scanValidateTargets(validator)
+            return this.scanValidateTargets(validator)
     }
 }
 

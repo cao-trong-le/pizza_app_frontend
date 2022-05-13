@@ -12,6 +12,8 @@ import { RegisterFormComponent } from "./form";
 import { ProductFormComponent } from "./form";
 import { BaseFormComponent } from "./form";
 
+import { BaseComponent } from "./main_body";
+
 export {
     HomePage,
     CartComponent,
@@ -25,5 +27,7 @@ export {
     LoginFormComponent,
     ProductFormComponent,
     RegisterFormComponent,
-    BaseFormComponent
+    BaseFormComponent,
+
+    BaseComponent
 }

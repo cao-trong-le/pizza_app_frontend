@@ -25,6 +25,7 @@ import {
   ProductFormComponent
 } from "components";
 
+import { BaseComponent } from "components";
 
 const App = (props) => {
   const [cartStatus, setCartStatus] = useState(true)
@@ -53,7 +54,9 @@ const App = (props) => {
         "/checkout/",
         "/register/",
         "/new/base/",
-        "/new/product/"],
+        "/new/product/",
+        "/view/base/"
+      ],
       exact: true,
       strict: false
     })
@@ -80,6 +83,7 @@ const App = (props) => {
           <Route exact path="/register/" component={RegisterFormComponent} />
           <Route exact path="/new/product/" component={ProductFormComponent} />
           <Route exact path="/new/base/" component={BaseFormComponent} />
+          <Route exact path="/view/base/" component={BaseComponent} />
 
           <Route exact path="/checkout/" component={CheckoutComponent} />
           <Route exact path="/home/" component={HomePage} />
