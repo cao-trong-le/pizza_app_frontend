@@ -13,6 +13,7 @@ import { ProductFormComponent } from "./form";
 import { BaseFormComponent } from "./form";
 
 import { BaseComponent } from "./main_body";
+import { MultiFuncComponent } from "./main_body";
 
 export {
     HomePage,
@@ -29,5 +30,6 @@ export {
     RegisterFormComponent,
     BaseFormComponent,
 
-    BaseComponent
+    BaseComponent,
+    MultiFuncComponent,
 }

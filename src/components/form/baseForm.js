@@ -9,6 +9,9 @@ import { ValidationHelpers } from "./formHelpers";
 // const Compress = require('compress.js')
 import Compress from "compress.js";
 import axios from "axios";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+// import { F } from "@fortawesome/fontawesome"
+import { faCheckSquare, faSquare } from '@fortawesome/fontawesome-free-solid'
 
 const BaseFormComponent = (props) => {
     // create later
@@ -20,7 +23,7 @@ const BaseFormComponent = (props) => {
         base_image: null,
         base_group: [
             {
-                default: true,
+                default: false,
                 name: "dough",
                 display: "Dough"
             },
@@ -42,7 +45,7 @@ const BaseFormComponent = (props) => {
         ],
         base_type: [
             {
-                default: true,
+                default: false,
                 name: "none",
                 display: "None"
             },
@@ -88,6 +91,55 @@ const BaseFormComponent = (props) => {
     const [formErrors, setFormErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    useEffect(() => {
+        const isEdit = props.edit
+        const item = props.item
+        let copied = { ...intialValues }
+        const keys = Object.keys(copied)
+        let _file = null
+
+        console.log(item)
+
+        if (isEdit) {
+            for (let key of keys) {
+                if (key === "base_group" || key === "base_type")
+                    copied[key] = {
+                        default: true,
+                        name: item[key],
+                        display: item[key].charAt(0).toUpperCase() + item[key].slice(1)
+                    }
+
+                else if (key === "base_medium_only") {
+                    console.log(typeof item[key] === "boolean")
+                    console.log(item[key])
+                    copied[key] = item[key]
+                }
+
+                else if (key === "base_image") {
+                    const url = `http://127.0.0.1:8000${item[key]}`
+                    const fileName = url.substring(url.lastIndexOf('/') + 1)
+
+                    fetch(url)
+                        .then(response => response.blob())
+                        .then(blob => new File([blob], `${fileName}`, {
+                            type: blob.type
+                        }))
+                        .then(file => {
+                            setFormValues((formValues) => {
+                                return { ...formValues, base_image: file }
+                            })
+                        })
+                }
+                else
+                    copied[key] = item[key]
+            }
+
+            setFormValues((formValues) => {
+                return { ...formValues, ...copied }
+            })
+        }
+    }, [])
+
     const formHelpers = new FormHelpers();
 
     const baseFormRef = useRef()
@@ -122,7 +174,6 @@ const BaseFormComponent = (props) => {
             const compress = new Compress()
 
             // Attach listener
-
             const files = [...e.target.files]
             compress.compress(files, {
                 size: 4,
@@ -162,18 +213,16 @@ const BaseFormComponent = (props) => {
     }
 
     const handleTick = (e) => {
-        const { name, checked } = e.target
-        // console.log(name, !checked)
-        setFormValues({ ...formValues, [name]: checked })
+        setFormValues({ ...formValues, base_medium_only: !formValues.base_medium_only })
     }
 
     const handleClick = (inputType, base_section, e) => {
-        const option_name = e.target.getAttribute("data-option-name")
         let value = null
-        let data = []
 
         if (inputType === "radio") {
             value = formDefault[base_section][e.target.id]
+            console.log(value)
+            value["default"] = true
 
             setFormValues({
                 ...formValues,
@@ -274,17 +323,33 @@ const BaseFormComponent = (props) => {
         if (handleValidation({ ...formValues }, false, null, null)) {
             console.log("success!!!")
             console.log(formValues)
-
-
-            // for (let [key, value] of reorganizeData().entries()) {
-            //     console.log(key, value)
-            // }
-
-            // console.log(JSON.parse(reorganizeData()))
             const formData = reorganizeData()
 
             // add event name
             formData.append("request_event", "add_base")
+
+            axios
+                .post("http://127.0.0.1:8000/product/base/", formData, {
+                    headers: { 'content-type': 'multipart/form-data' }
+                })
+                .then((res) => {
+                    console.log(res.data)
+                })
+        }
+    }
+
+    const handleUpdate = (e) => {
+        e.preventDefault()
+        console.log("update running!!!")
+
+        if (handleValidation({ ...formValues }, false, null, null)) {
+            console.log("success!!!")
+            console.log(formValues)
+            const formData = reorganizeData()
+
+            // add event name
+            formData.append("request_event", "edit_base")
+            formData.append("base_code", props.item.base_code)
 
             axios
                 .post("http://127.0.0.1:8000/product/base/", formData, {
@@ -322,57 +387,127 @@ const BaseFormComponent = (props) => {
                         type="text"
                         name="base_description"
                         id="base_description"
-                        value={formValues.base_desc}
+                        value={formValues.base_description}
                         onChange={handleChange} />
                     {formErrors.base_description && <span>{formErrors.base_description}</span>}
                 </div>
 
-                <div className="form-field">
-                    <label htmlFor="base_name">Medium Only</label>
-                    <input
-                        type="checkbox"
-                        name="base_medium_only"
-                        id="base_medium_only"
-                        defaultChecked={formValues.base_medium_only}
-                        onClick={handleTick} />
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                    }}
+                    className="form-field">
+                    <i
+                        style={{
+                            width: "25px",
+                            height: "25px",
+                            fontSize: "16pt",
+                            color: "black",
+                        }}
+                        onClick={handleTick}
+                        className={formValues.base_medium_only ? "far fa-check-square" : "far fa-square"}></i>
+                    <p>Medium Only</p>
                 </div>
 
                 {(() => {
+                    let copied = [...defaultValues.base_group]
+                    const findDefault = (ele) => ele.name === formValues.base_group.name
+                    const idx = copied.findIndex(findDefault)
+                    copied.splice(idx, 1, formValues.base_group)
+
+                    // let rewriteDefault = [...]
+
                     if (formValues.base_group !== null) {
                         return (
                             <div className="form-field">
-                                <fieldset>
-                                    <legend>Product Type</legend>
-                                    {formHelpers.renderOptionList(
-                                        formDefault.base_group,
-                                        "radio",
-                                        "base_group",
-                                        "base_group",
-                                        ["base_group"],
-                                        handleClick
-                                    )}
-                                </fieldset>
+                                <legend>Ingredient Group</legend>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        justifyContent: "left",
+                                        alignItems: "center",
+                                    }}>
+                                    {copied.map((item, index) => {
+                                        return (
+                                            <div
+                                                style={{
+                                                    marginRight: "10px",
+                                                    display: "flex",
+                                                    flexDirection: "center",
+                                                    justifyContent: "left",
+                                                    alignItems: "center",
+                                                    width: "80px"
+                                                }} >
+                                                <i
+                                                    style={{
+                                                        marginRight: "2px",
+
+                                                    }}
+                                                    key={index}
+                                                    id={index}
+                                                    className={item.default ? "fas fa-circle" : "far fa-circle"}
+                                                    onClick={((e) => { handleClick("radio", "base_group", e) })}></i>
+
+                                                <p>{item.display}</p>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </div>
                         )
                     }
                 })()}
 
                 {(() => {
+                    const findDefault = (ele) => ele.name === formValues.base_type.name
+                    let copied = [...defaultValues.base_type]
+                    const idx = copied.findIndex(findDefault)
+                    copied.splice(idx, 1, formValues.base_type)
+
+                    console.log(idx)
+                    console.log(copied[idx])
+
                     if (formValues.base_group !== null
                         && formValues.base_group.name === "topping") {
                         return (
                             <div className="form-field">
-                                <fieldset>
-                                    <legend>Product Type</legend>
-                                    {formHelpers.renderOptionList(
-                                        formDefault.base_type,
-                                        "radio",
-                                        "base_type",
-                                        "base_type",
-                                        ["base_type"],
-                                        handleClick
-                                    )}
-                                </fieldset>
+
+                                <legend>Product Type</legend>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        justifyContent: "left",
+                                        alignItems: "center",
+                                    }}>
+                                    {copied.map((item, index) => {
+                                        return (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    marginRight: "10px",
+                                                    justifyContent: "left",
+                                                    alignItems: "center",
+                                                    width: "80px",
+                                                }}>
+                                                <i
+                                                    style={{
+                                                        marginRight: "2px",
+                                                    }}
+                                                    key={index}
+                                                    id={index}
+                                                    className={item.default ? "fas fa-circle" : "far fa-circle"}
+                                                    onClick={((e) => { handleClick("radio", "base_type", e) })}></i>
+
+                                                <p>{item.display}</p>
+                                            </div>
+                                        )
+                                    })}
+
+                                </div>
+
                             </div>
                         )
                     }
@@ -413,8 +548,8 @@ const BaseFormComponent = (props) => {
                 </div>
 
                 <button
-                    onClick={handleSubmit}
-                    type="submit">Submit</button>
+                    onClick={props.edit ? handleUpdate : handleSubmit}
+                    type="submit">{props.edit ? "Update" : "Create"}</button>
             </div>
         </BaseFormWrapper>
     )

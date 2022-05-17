@@ -6,7 +6,10 @@ import { AnimatePresence } from "framer-motion";
 
 // Components
 // import cart from "../src_v1/components/cart";
-import { CheckoutComponent, ProductsComponent } from "components";
+import {
+  CheckoutComponent,
+  ProductsComponent
+} from "components";
 
 import {
   HomePage,
@@ -25,7 +28,10 @@ import {
   ProductFormComponent
 } from "components";
 
-import { BaseComponent } from "components";
+import {
+  BaseComponent,
+  MultiFuncComponent
+} from "components";
 
 const App = (props) => {
   const [cartStatus, setCartStatus] = useState(true)
@@ -83,7 +89,7 @@ const App = (props) => {
           <Route exact path="/register/" component={RegisterFormComponent} />
           <Route exact path="/new/product/" component={ProductFormComponent} />
           <Route exact path="/new/base/" component={BaseFormComponent} />
-          <Route exact path="/view/base/" component={BaseComponent} />
+          <Route exact path="/view/:section/" component={MultiFuncComponent} />
 
           <Route exact path="/checkout/" component={CheckoutComponent} />
           <Route exact path="/home/" component={HomePage} />

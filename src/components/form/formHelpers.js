@@ -24,7 +24,7 @@ class FormHelpers {
         return optionsList.map((option, index) => {
             return (
                 <React.Fragment key={index}>
-                    <input
+                    {/* <input
                         key={index}
                         data-option-name={option.name}
                         type={inputType}
@@ -37,7 +37,12 @@ class FormHelpers {
                                 return false
                         })()}
                         onClick={((e) => { eventHandler(inputType, sectionName, e) })}
-                    />
+                    /> */}
+                    <i
+                        className={(this.defaultNames.indexOf(sectionName) !== -1) ? "fas fa-circle" : "far fa-circle"}
+                        onClick={((e) => { eventHandler(inputType, sectionName, e) })}></i>
+                    {/* <i className="far fa-circle"></i>
+                    <i className="fas fa-circle"></i> */}
                     <label for={option.name}>{option.display}</label>
                 </React.Fragment>
             )
@@ -49,6 +54,9 @@ class FormHelpers {
         eventHandler,
         cancelHandler,
         image = null) => {
+
+        console.log(image)
+
         return (
             <React.Fragment>
                 <input
@@ -65,6 +73,7 @@ class FormHelpers {
                             return ""
                     })()} alt={inputImgName} />}
                 </div>
+
                 {image !== null && <input
                     type="button"
                     value="Clear"

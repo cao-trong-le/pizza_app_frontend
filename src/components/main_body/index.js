@@ -5,6 +5,8 @@ import { CustomizeComponent } from "./customize_page";
 import { CheckoutComponent } from "./checkout";
 import { BaseComponent } from "./bases";
 
+import { MultiFuncComponent } from "./multi_functions";
+
 
 export {
     HomePage,
@@ -13,6 +15,7 @@ export {
     CustomizeComponent,
     ProductGroupComponent,
 
-    BaseComponent
+    BaseComponent,
+    MultiFuncComponent,
 }
 
